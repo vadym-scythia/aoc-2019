@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#define pairsCount 5
+
 int main()
 {
     const int minRange = 100000, maxRange = 999999;
@@ -21,15 +23,36 @@ int main()
             leftRange++;
             continue;
         }
-
-        if (!(number1 == number2 || number2 == number3 || number3 == number4 || number4 == number5 || number5 == number6))
+ 
+        int groupArr[pairsCount] = { number1 * 10 + number2, number2 * 10 + number3, number3 * 10 + number4,
+                                     number4 * 10 + number5, number5 * 10 + number6, };
+        
+        for (int i = 0; i < pairsCount; i++)
         {
-            leftRange++;
-            continue;
+            int firstNumber = groupArr[i] % 100 / 10, secondNumber = groupArr[i] % 10,
+                rightNeighbour = -1, leftNeighbour = -1;
+
+            if (firstNumber == secondNumber)
+            {
+                if (i == 0)
+                    rightNeighbour = groupArr[i + 1] % 10;
+                else if (i == pairsCount - 1)
+                    leftNeighbour = groupArr[i - 1] % 100 / 10;
+                else 
+                {
+                    rightNeighbour = groupArr[i + 1] % 10;
+                    leftNeighbour = groupArr[i - 1] % 100 / 10;
+                }
+
+                if (!(firstNumber == rightNeighbour || firstNumber == leftNeighbour))
+                    goto endWithCounter;
+            }
         }
 
-        counter++;
-        leftRange++;
+        goto end;
+
+        endWithCounter: counter++;
+        end: leftRange++;
     }
 
     printf("result: %d", counter);
