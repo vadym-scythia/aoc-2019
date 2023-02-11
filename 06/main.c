@@ -241,10 +241,76 @@ int count_total_orbits_in_store(store *ptr_store) {
     return result;
 }
 
+/*int find_san(space_object* ptr_you) {
+    int count = 0;
+    space_object *ptr_parent = ptr_you->ptr_parent;
+
+    for (int i = 0; i < ptr_parent->num_children; i++) {
+        space_object *ptr_child = ptr_parent->ptr_children[i];
+        if (ptr_child->name[0] == 'S' && ptr_child->name[1] == 'A' && ptr_child->name[2] == 'N') {
+            return 1;
+        }
+        int result = find_san(ptr_child);
+    }
+}*/
+
+/*int find_in_children(space_object* ptr_parent, space_object* ptr_except) {
+    space_object *ptr_parent_cpy = ptr_parent;
+
+    for (int i = 0; i < ptr_parent->num_children; i++) {
+        space_object *ptr_child = ptr_parent_cpy;
+        if (ptr_child->name[0] == ptr_except->name[0]
+            && ptr_child->name[1] == ptr_except->name[1]
+            && ptr_child->name[2] == ptr_except->name[2])
+            continue;
+        if (ptr_child->name[0] == 'S' && ptr_child->name[1] == 'A' && ptr_child->name[2] == 'N')
+            return 1;
+        if find_in_children(ptr_child, ptr_except);
+    }
+}*/
+
+// create additional store for checked space_objects (to skip them), reuse is_in_store
+int find_san (space_object* ptr_current, store *ptr_skipped_names_store, int is_child) {
+    if (ptr_current->name[0] == 'S' && ptr_current->name[1] == 'A' && ptr_current->name[2] == 'N')
+        return 1;
+
+    if (ptr_current->num_children < 1) {
+        add_to_store(ptr_skipped_names_store, ptr_current, NULL);
+        return 0;
+    }
+
+    for (int i = 0; i < ptr_current->num_children; i++) {
+        space_object *child = ptr_current->ptr_children[i];
+        store *ptr_skipped = is_in_store(ptr_skipped_names_store, child);
+        if (ptr_skipped != NULL)
+            continue;
+
+        int recursive_result = find_san(child, ptr_skipped_names_store, 1);
+        if (recursive_result > 0)
+            return ++recursive_result;
+    }
+
+    add_to_store(ptr_skipped_names_store, ptr_current, NULL);
+
+    if (is_child == 0) {
+        int recursive_result = find_san(ptr_current->ptr_parent, ptr_skipped_names_store, 0);
+        if (recursive_result > 0)
+            return ++recursive_result;
+    }
+
+    add_to_store(ptr_skipped_names_store, ptr_current, NULL);
+    return 0;
+}
+
 int main(int argc, char **argv) {
+
+    // "COM)B11,B11)C11,C11)D11,D11)E11,E11)F11,B11)G11,G11)H11,D11)I11,E11)J11,J11)K11,K11)L11,K11)YOU,I11)SAN\0";
+    // "COM)B11,B11)C11,C11)D11,D11)E11,E11)F11,B11)G11,G11)H11,D11)I11,E11)J11,J11)K11,K11)L11,K11)YOU,COM)SAN\0";
+    // read_file("input.txt");
     char *ptr_input_string = read_file("input.txt");
     int total_orbits = 0;
     store *ptr_store = init_store();
+    store *ptr_skipped_name_store = init_store();
 
     while (*ptr_input_string != '\0') {
         space_object *ptr_parent = init_space_object(), *ptr_child = init_space_object(),
@@ -286,7 +352,14 @@ int main(int argc, char **argv) {
     }
 
     total_orbits = count_total_orbits_in_store(ptr_store);
-    printf("%d", total_orbits);
+
+    space_object *ptr_you = init_space_object();
+    ptr_you->name[0] = 'Y'; ptr_you->name[1] = 'O'; ptr_you->name[2] = 'U';
+    ptr_you = is_in_store(ptr_store, ptr_you);
+    add_to_store(ptr_skipped_name_store, ptr_you, NULL);
+    int min_num_orbits = find_san(ptr_you->ptr_parent, ptr_skipped_name_store, 0) - 2;
+
+    printf("part1:%d\npart2:%d", total_orbits, min_num_orbits);
 
     return 0;
 }
