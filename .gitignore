@@ -1,4 +1,4 @@
-.vscode/tasks.json
+.vscode/
 test*.*
 *.exe
 \.idea*
