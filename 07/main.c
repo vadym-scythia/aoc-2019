@@ -2,8 +2,18 @@
 #include <string.h>
 #include "../libs/util.h"
 
+typedef struct
+{
+    int output;
+    int currentOperationAddress;
+    int input[2];
+    int isFirstCycle;
+    IntArray* program;
+} Amplifier;
+
+void initAmplifier(Amplifier* amplifier, IntArray* initProgram);
 void fetch(char *ptrToProgramString, IntArray *program);
-int decodeAndExecute(IntArray program, int input[]);
+void decodeAndExecute(Amplifier* amplifier); 
 IntArray** generateSettingSequences();
 IntArray* copyIntArray(const IntArray* src);
 void permute(IntArray*** store, int* indexStore, IntArray* ptrIntArr, int left, int right);
@@ -17,32 +27,86 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    IntArray tempProgram;
+    IntArray programInIntArr, tempProgram;
     initIntArray(&tempProgram, 1);
     char *ptrToProgramString = readFileOneLine(argv[1]);
     fetch(ptrToProgramString, &tempProgram);
-
-    IntArray programInIntArr;
     initIntArray(&programInIntArr, tempProgram.used);
     for (int i = 0; i < programInIntArr.size; i++)
         insertIntArray(&programInIntArr, tempProgram.array[i]);
     freeIntArray(&tempProgram);
 
-    int input[2], amplifiersAmount = 5, result = 0;
     IntArray** settingSequences = generateSettingSequences();
+    int result = 0;
     for (int i = 0; i < 120; i++)
     {
         int output = 0;
-        for (int j = 0; j < amplifiersAmount; j++) 
+        Amplifier a, b, c, d, e;
+        initAmplifier(&a, &programInIntArr);
+        initAmplifier(&b, &programInIntArr);
+        initAmplifier(&c, &programInIntArr);
+        initAmplifier(&d, &programInIntArr);
+        initAmplifier(&e, &programInIntArr);
+        while (e.program->array[e.currentOperationAddress] != 99)
         {
-            input[0] = settingSequences[i]->array[j];
-            input[1] = output;
+            if (a.isFirstCycle == 1)
+            {
+                a.input[0] = settingSequences[i]->array[0];
+                a.input[1] = output;
+            }
+            else
+                a.input[0] = output;
+            decodeAndExecute(&a);
+            output = a.output;
+            a.isFirstCycle = 0;
 
-            output = decodeAndExecute(programInIntArr, input);
-            if (output > result)
-                result = output;
+            if (b.isFirstCycle == 1)
+            {
+                b.input[0] = settingSequences[i]->array[1];
+                b.input[1] = output;
+            }
+            else
+                b.input[0] = output;
+            decodeAndExecute(&b);
+            output = b.output;
+            b.isFirstCycle = 0;
+
+            if (c.isFirstCycle == 1)
+            {
+                c.input[0] = settingSequences[i]->array[2];
+                c.input[1] = output;
+            }
+            else
+                c.input[0] = output;
+            decodeAndExecute(&c);
+            output = c.output;
+            c.isFirstCycle = 0;
+
+            if (d.isFirstCycle == 1)
+            {
+                d.input[0] = settingSequences[i]->array[3];
+                d.input[1] = output;
+            }
+            else
+                d.input[0] = output;
+            decodeAndExecute(&d);
+            output = d.output;
+            d.isFirstCycle = 0;
+
+            if (e.isFirstCycle == 1)
+            {
+                e.input[0] = settingSequences[i]->array[4];
+                e.input[1] = output;
+            }
+            else
+                e.input[0] = output;
+            decodeAndExecute(&e);
+            output = e.output;
+            e.isFirstCycle = 0;
         }
-    } 
+        if (output > result)
+            result = output;
+    }
 
     freeIntArray(&programInIntArr);
     printf("result: %d", result);
@@ -94,13 +158,18 @@ void fetch(char *ptrToProgramString, IntArray *program)
     }
 }
 
-int decodeAndExecute(IntArray programInIntArr, int input[]) 
+void decodeAndExecute(Amplifier* amplifier) 
 {
-    int output = 0, inputOpCalls = 0, operationAddress = 0;
-    while (operationAddress <= programInIntArr.size)
+    int inputOpCalls = 0;
+    for (int i = 0; i < amplifier->program->used; i++)
     {
-        int operation = programInIntArr.array[operationAddress] % 100, firstMode = programInIntArr.array[operationAddress] % 1000 / 100,
-            secondMode = programInIntArr.array[operationAddress] % 10000 / 1000, thirdMode = programInIntArr.array[operationAddress] % 100000 / 10000;
+        printf("%d,", amplifier->program->array[i]);
+    }
+    printf("\n");
+    while (amplifier->currentOperationAddress <= amplifier->program->used)
+    {
+        int operation = amplifier->program->array[amplifier->currentOperationAddress] % 100, firstMode = amplifier->program->array[amplifier->currentOperationAddress] % 1000 / 100,
+            secondMode = amplifier->program->array[amplifier->currentOperationAddress] % 10000 / 1000, thirdMode = amplifier->program->array[amplifier->currentOperationAddress] % 100000 / 10000;
        
         if (operation == 99)
         {
@@ -109,95 +178,96 @@ int decodeAndExecute(IntArray programInIntArr, int input[])
 
         if (operation == 1)
         {
-            // todo: extract getting of operand to separate function
-            int operand1 = firstMode == 1 ? programInIntArr.array[operationAddress + 1] : programInIntArr.array[programInIntArr.array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? programInIntArr.array[operationAddress + 2] : programInIntArr.array[programInIntArr.array[operationAddress + 2]];
-            int operand3 = programInIntArr.array[operationAddress + 3];
+            int operand1 = firstMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 1] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 1]];
+            int operand2 = secondMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 2] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 2]];
+            int operand3 = amplifier->program->array[amplifier->currentOperationAddress + 3];
             int result = operand1 + operand2;
-            programInIntArr.array[operand3] = result;
-            operationAddress += 4;
+            amplifier->program->array[operand3] = result;
+            amplifier->currentOperationAddress += 4;
             continue;
         }
 
         if (operation == 2)
         {
-            int operand1 = firstMode == 1 ? programInIntArr.array[operationAddress + 1] : programInIntArr.array[programInIntArr.array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? programInIntArr.array[operationAddress + 2] : programInIntArr.array[programInIntArr.array[operationAddress + 2]];
-            int operand3 = programInIntArr.array[operationAddress + 3];
+            int operand1 = firstMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 1] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 1]];
+            int operand2 = secondMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 2] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 2]];
+            int operand3 = amplifier->program->array[amplifier->currentOperationAddress + 3];
             int result = operand1 * operand2;
-            programInIntArr.array[operand3] = result;
-            operationAddress += 4;
+            amplifier->program->array[operand3] = result;
+            amplifier->currentOperationAddress += 4;
             continue;
         }
 
         if (operation == 3)
         {
-            int operand1 = programInIntArr.array[operationAddress + 1];
-            int result = input[inputOpCalls];
-            programInIntArr.array[operand1] = result;
-            operationAddress += 2;
+            if ((amplifier->isFirstCycle == 1 && inputOpCalls > 1) || (amplifier->isFirstCycle == 0 && inputOpCalls > 0))
+                break;
+            int operand1 = amplifier->program->array[amplifier->currentOperationAddress + 1];
+            int result = amplifier->input[inputOpCalls];
+            amplifier->program->array[operand1] = result;
+            amplifier->currentOperationAddress += 2;
             inputOpCalls++;
             continue;
         }
 
         if (operation == 4)
         {
-            int result = firstMode == 1 ? programInIntArr.array[operationAddress + 1] : programInIntArr.array[programInIntArr.array[operationAddress + 1]];
+            int result = firstMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 1] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 1]];
             printf("%d\r\n", result);
-            operationAddress += 2;
-            output = result;
+            amplifier->currentOperationAddress += 2;
+            amplifier->output = result;
             continue;
         }
 
         if (operation == 5)
         {
-            int operand1 = firstMode == 1 ? programInIntArr.array[operationAddress + 1] : programInIntArr.array[programInIntArr.array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? programInIntArr.array[operationAddress + 2] : programInIntArr.array[programInIntArr.array[operationAddress + 2]];
+            int operand1 = firstMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 1] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 1]];
+            int operand2 = secondMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 2] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 2]];
             if (operand1 != 0)
-                operationAddress = operand2;
+                amplifier->currentOperationAddress = operand2;
             else
-                operationAddress += 3;
+                amplifier->currentOperationAddress += 3;
             continue;
         }
 
         if (operation == 6)
         {
-            int operand1 = firstMode == 1 ? programInIntArr.array[operationAddress + 1] : programInIntArr.array[programInIntArr.array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? programInIntArr.array[operationAddress + 2] : programInIntArr.array[programInIntArr.array[operationAddress + 2]];
+            int operand1 = firstMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 1] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 1]];
+            int operand2 = secondMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 2] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 2]];
             if (operand1 == 0)
-                operationAddress = operand2;
+                amplifier->currentOperationAddress = operand2;
             else 
-                operationAddress += 3;
+                amplifier->currentOperationAddress += 3;
             continue;
         }
 
         if (operation == 7)
         {
-            int operand1 = firstMode == 1 ? programInIntArr.array[operationAddress + 1] : programInIntArr.array[programInIntArr.array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? programInIntArr.array[operationAddress + 2] : programInIntArr.array[programInIntArr.array[operationAddress + 2]];
-            int operand3 = programInIntArr.array[operationAddress + 3];
+            int operand1 = firstMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 1] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 1]];
+            int operand2 = secondMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 2] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 2]];
+            int operand3 = amplifier->program->array[amplifier->currentOperationAddress + 3];
             if (operand1 < operand2)
-                programInIntArr.array[operand3] = 1;
+                amplifier->program->array[operand3] = 1;
             else
-                programInIntArr.array[operand3] = 0;
-            operationAddress += 4;
+                amplifier->program->array[operand3] = 0;
+            amplifier->currentOperationAddress += 4;
             continue;
         }
 
         if (operation == 8)
         {
-            int operand1 = firstMode == 1 ? programInIntArr.array[operationAddress + 1] : programInIntArr.array[programInIntArr.array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? programInIntArr.array[operationAddress + 2] : programInIntArr.array[programInIntArr.array[operationAddress + 2]];
-            int operand3 = programInIntArr.array[operationAddress + 3];
+            int operand1 = firstMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 1] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 1]];
+            int operand2 = secondMode == 1 ? amplifier->program->array[amplifier->currentOperationAddress + 2] : amplifier->program->array[amplifier->program->array[amplifier->currentOperationAddress + 2]];
+            int operand3 = amplifier->program->array[amplifier->currentOperationAddress + 3];
             if (operand1 == operand2)
-                programInIntArr.array[operand3] = 1;
+                amplifier->program->array[operand3] = 1;
             else
-                programInIntArr.array[operand3] = 0;
-            operationAddress += 4;
+                amplifier->program->array[operand3] = 0;
+            amplifier->currentOperationAddress += 4;
             continue;
         }
+        amplifier->currentOperationAddress = amplifier->currentOperationAddress;
     }
-    return output;
 }
 
 IntArray** generateSettingSequences()
@@ -207,7 +277,7 @@ IntArray** generateSettingSequences()
     initIntArray(ptrSequence, 5);
     for (int i = 0; i < 5; ++i) 
     {
-        insertIntArray(ptrSequence, i);
+        insertIntArray(ptrSequence, i + 5);
     }
     int index = 0;
     permute(&store, &index, ptrSequence, 0, ptrSequence->used - 1);
@@ -220,7 +290,7 @@ void permute(IntArray*** store, int* indexStore, IntArray* ptrIntArr, int left, 
     int* arr = ptrIntArr->array;
     if (left == right)
     {
-        //printf("%d %d %d %d %d\n", arr[0], arr[1], arr[2], arr[3], arr[4]);
+        printf("%d %d %d %d %d\n", arr[0], arr[1], arr[2], arr[3], arr[4]);
         (*store)[(*indexStore)++] = copyIntArray(ptrIntArr);
     }
     else 
@@ -248,4 +318,12 @@ IntArray* copyIntArray(const IntArray* src)
     memcpy(dest->array, src->array, src->used * sizeof(int));
     dest->used = src->used;
     return dest;
+}
+
+void initAmplifier(Amplifier* amplifier, IntArray* initProgram)
+{
+    amplifier->output = 0;
+    amplifier->currentOperationAddress = 0;
+    amplifier->isFirstCycle = 1;
+    amplifier->program = copyIntArray(initProgram);
 }
