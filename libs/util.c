@@ -3,7 +3,7 @@
 #include <string.h>
 
 #define MAX_LINE_LENGTH 9
-#define MAX_ONE_LINE_LENGTH 1235
+#define MAX_ONE_LINE_LENGTH 16000
 
 //String and read file
 void initString(String *ptr, size_t initSize) {
@@ -53,7 +53,7 @@ char *readFileNewLine(char *path) {
 }
 
 // add buff
-char *readFileOneLine(char *path) {
+char *  readFileOneLine(char *path) {
     char *ptr_buff;
     char *tmp = malloc(MAX_ONE_LINE_LENGTH * sizeof(char));
     if (tmp != NULL)
