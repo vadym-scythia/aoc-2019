@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
                     fewest_zeros_amount = zeros_amount;
                     num_fewest_zero_layer = num_layer - 1;
                 }
-                
+
                 zeros_amount = 0;
             }
                 
@@ -60,7 +60,31 @@ int main(int argc, char **argv) {
         }
     }
 
-    printf("result: %d", num_1 * num_2);
+    printf("result1: %d\n", num_1 * num_2);
+
+    // Part 2.
+    // change if layer_size is not as in original puzzle
+    int arr2[150], flag = 1;
+
+    for (int i = 0; i < layer_size; i++) {
+        int incr = i, layer = 0;
+        while (flag) {
+            if (arr[layer][i] == 0 || arr[layer][i] == 1) {
+                arr2[i] = arr[layer][i];
+                break;
+            } else {
+                incr += layer_size;
+                layer++;
+            }
+        }
+    }
+
+    printf("result2:\n");
+    for (int i = 0; i < layer_size; i++) {
+        if (i % 25 == 0 && i != 0) 
+            printf("\n");
+        printf("%d ", arr2[i]);
+    }
 
     for (int i = 0; i < pixels_tall; i++) {
         free(arr[i]);
