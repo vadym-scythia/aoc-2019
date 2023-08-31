@@ -17,12 +17,12 @@ int main(int argc, char **argv) {
 
 void fetch(char *p_program_string, IntArray **pp_program)
 {
-    IntArray *temp_program;
-    initIntArray(temp_program, 1);
+    IntArray temp_program;
+    initIntArray(&temp_program, 1);
 
     while (*p_program_string != '\0')
     {
-        if (*p_program_string == ',')
+        if (*p_program_string == ',' || *p_program_string == ' ')
         {
             p_program_string++;
             continue;
@@ -37,35 +37,35 @@ void fetch(char *p_program_string, IntArray **pp_program)
 
         if (*(p_program_string + 1) == ',' || *(p_program_string + 1) == '\0')
         {
-            insertIntArray(temp_program, negativeModifier * (*p_program_string - '0'));
+            insertIntArray(&temp_program, negativeModifier * (*p_program_string - '0'));
             p_program_string++;
         }
         else if (*(p_program_string + 2) == ',' || *(p_program_string + 2) == '\0')
         {
-            insertIntArray(temp_program, negativeModifier * (10 * (*p_program_string - '0') + *(p_program_string + 1) - '0'));
+            insertIntArray(&temp_program, negativeModifier * (10 * (*p_program_string - '0') + *(p_program_string + 1) - '0'));
             p_program_string += 2;
         }
         else if (*(p_program_string + 3) == ',' || *(p_program_string + 3) == '\0')
         {
-            insertIntArray(temp_program, negativeModifier * (100 * (*p_program_string - '0') + 10 * (*(p_program_string + 1) - '0') + *(p_program_string + 2) - '0'));
+            insertIntArray(&temp_program, negativeModifier * (100 * (*p_program_string - '0') + 10 * (*(p_program_string + 1) - '0') + *(p_program_string + 2) - '0'));
             p_program_string += 3;
         }
         else if (*(p_program_string + 4) == ',' || *(p_program_string + 4) == '\0')
         {
-            insertIntArray(temp_program, negativeModifier * (1000 * (*p_program_string - '0') + 100 * (*(p_program_string + 1) - '0') + 10 * (*(p_program_string + 2) - '0') + (*(p_program_string + 3) - '0')));
+            insertIntArray(&temp_program, negativeModifier * (1000 * (*p_program_string - '0') + 100 * (*(p_program_string + 1) - '0') + 10 * (*(p_program_string + 2) - '0') + (*(p_program_string + 3) - '0')));
             p_program_string += 4;
         }
         else if (*(p_program_string + 5) == ',' || *(p_program_string + 5) == '\0')
         {
-            insertIntArray(temp_program, negativeModifier * (10000 * (*p_program_string - '0') + 1000 * (*(p_program_string + 1) - '0') + 100 * (*(p_program_string + 2) - '0') + 10 * (*(p_program_string + 3) - '0') + *(p_program_string + 4) - '0'));
+            insertIntArray(&temp_program, negativeModifier * (10000 * (*p_program_string - '0') + 1000 * (*(p_program_string + 1) - '0') + 100 * (*(p_program_string + 2) - '0') + 10 * (*(p_program_string + 3) - '0') + *(p_program_string + 4) - '0'));
             p_program_string += 5;
         }
     }
 
-    initIntArray(*pp_program, temp_program->used);
+    initIntArray(*pp_program, temp_program.used);
     for (int i = 0; i < (*pp_program)->size; i++)
-        insertIntArray(*pp_program, temp_program->array[i]);
-    freeIntArray(temp_program);
+        insertIntArray(*pp_program, temp_program.array[i]);
+    freeIntArray(&temp_program);
 }
 
 void decodeAndExecute(IntArray *p_program) 
