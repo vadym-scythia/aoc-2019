@@ -1,6 +1,11 @@
 #include "stdio.h"
 #include "../libs/util.h"
 
+// ToDo:
+// add store for relative base (it could be a var)
+// add relative mode (2) for operands (it add operand's value to relative base and gets the relative base as address)
+// add operation 9 that adjusts the relative base
+
 void fetch(char *p_program_string, IntArray **p_program);
 void decodeAndExecute(IntArray *p_program); 
 
@@ -73,8 +78,8 @@ void decodeAndExecute(IntArray *p_program)
     int operationAddress = 0;
     while (operationAddress <= p_program->size)
     {
-        int operation = p_program->array[operationAddress] % 100, firstMode = p_program->array[operationAddress] % 1000 / 100,
-            secondMode = p_program->array[operationAddress] % 10000 / 1000, thirdMode = p_program->array[operationAddress] % 100000 / 10000;
+        int operation = p_program->array[operationAddress] % 100, first_operand_mode = p_program->array[operationAddress] % 1000 / 100,
+            second_operand_mode = p_program->array[operationAddress] % 10000 / 1000, third_operand_mode = p_program->array[operationAddress] % 100000 / 10000;
        
         if (operation == 99)
         {
@@ -86,8 +91,8 @@ void decodeAndExecute(IntArray *p_program)
         {
             // execute
             // todo: extract operand getting to separate function
-            int operand1 = firstMode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
+            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
+            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
             int operand3 = p_program->array[operationAddress + 3];
             int result = operand1 + operand2;
             p_program->array[operand3] = result;
@@ -98,8 +103,8 @@ void decodeAndExecute(IntArray *p_program)
         if (operation == 2)
         {
             // execute
-            int operand1 = firstMode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
+            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
+            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
             int operand3 = p_program->array[operationAddress + 3];
             int result = operand1 * operand2;
             p_program->array[operand3] = result;
@@ -121,7 +126,7 @@ void decodeAndExecute(IntArray *p_program)
         if (operation == 4)
         {
             // execute
-            int result = firstMode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
+            int result = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
             printf("%d\r\n", result);
             operationAddress += 2;
             continue;
@@ -130,8 +135,8 @@ void decodeAndExecute(IntArray *p_program)
         if (operation == 5)
         {
             // execute
-            int operand1 = firstMode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
+            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
+            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
             if (operand1 != 0)
                 operationAddress = operand2;
             else
@@ -141,8 +146,8 @@ void decodeAndExecute(IntArray *p_program)
 
         if (operation == 6)
         {
-            int operand1 = firstMode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
+            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
+            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
             if (operand1 == 0)
                 operationAddress = operand2;
             else 
@@ -152,8 +157,8 @@ void decodeAndExecute(IntArray *p_program)
 
         if (operation == 7)
         {
-            int operand1 = firstMode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
+            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
+            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
             int operand3 = p_program->array[operationAddress + 3];
             if (operand1 < operand2)
                 p_program->array[operand3] = 1;
@@ -165,8 +170,8 @@ void decodeAndExecute(IntArray *p_program)
 
         if (operation == 8)
         {
-            int operand1 = firstMode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = secondMode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
+            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
+            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
             int operand3 = p_program->array[operationAddress + 3];
             if (operand1 == operand2)
                 p_program->array[operand3] = 1;
