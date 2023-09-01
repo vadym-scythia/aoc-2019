@@ -1,20 +1,15 @@
 #include "stdio.h"
 #include "../libs/util.h"
 
-// ToDo:
-// add store for relative base (it could be a var)
-// add relative mode (2) for operands (it add operand's value to relative base and gets the relative base as address)
-// add operation 9 that adjusts the relative base
-
 void fetch(char *p_program_string, IntArray **p_program);
-void decodeAndExecute(IntArray *p_program); 
+void decode_execute(IntArray *p_program); 
 
 int main(int argc, char **argv) {
     char *p_program_string = readFileOneLine(argv[1]);
     IntArray *p_program;
 
     fetch(p_program_string, &p_program);
-    decodeAndExecute(p_program);
+    decode_execute(p_program);
     freeIntArray(p_program);
 
     return 0;
@@ -73,47 +68,73 @@ void fetch(char *p_program_string, IntArray **pp_program)
     freeIntArray(&temp_program);
 }
 
-void decodeAndExecute(IntArray *p_program) 
+void decode_execute(IntArray *p_program) 
 {
     int operationAddress = 0;
+    int relative_base = 0;
     while (operationAddress <= p_program->size)
     {
-        int operation = p_program->array[operationAddress] % 100, first_operand_mode = p_program->array[operationAddress] % 1000 / 100,
-            second_operand_mode = p_program->array[operationAddress] % 10000 / 1000, third_operand_mode = p_program->array[operationAddress] % 100000 / 10000;
+        // decode
+        int operation = p_program->array[operationAddress] % 100, operand1_mode = p_program->array[operationAddress] % 1000 / 100,
+            operand2_mode = p_program->array[operationAddress] % 10000 / 1000, operand3_mode = p_program->array[operationAddress] % 100000 / 10000;
        
-        if (operation == 99)
-        {
+        if (operation == 99) {
             // execute
             break;
         }
 
-        if (operation == 1)
-        {
+        if (operation == 1) {
             // execute
             // todo: extract operand getting to separate function
-            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
-            int operand3 = p_program->array[operationAddress + 3];
-            int result = operand1 + operand2;
+            int operand1, operand2, operand3, result;
+            
+            if (operand1_mode == 0)
+                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+            else if (operand1_mode == 1)
+                operand1 = p_program->array[operationAddress + 1];
+            else if (operand1_mode == 2)
+                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+
+            if (operand2_mode == 0)
+                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+            else if (operand2_mode == 1)
+                operand2 = p_program->array[operationAddress + 2];
+            else if (operand2_mode == 2)
+                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+            
+            operand3 = p_program->array[operationAddress + 3];
+            result = operand1 + operand2;
             p_program->array[operand3] = result;
             operationAddress += 4;
             continue;
         }
 
-        if (operation == 2)
-        {
+        if (operation == 2) {
             // execute
-            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
-            int operand3 = p_program->array[operationAddress + 3];
-            int result = operand1 * operand2;
+            int operand1, operand2, operand3, result;
+            
+            if (operand1_mode == 0)
+                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+            else if (operand1_mode == 1)
+                operand1 = p_program->array[operationAddress + 1];
+            else if (operand1_mode == 2)
+                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+
+            if (operand2_mode == 0)
+                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+            else if (operand2_mode == 1)
+                operand2 = p_program->array[operationAddress + 2];
+            else if (operand2_mode == 2)
+                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+
+            operand3 = p_program->array[operationAddress + 3];
+            result = operand1 * operand2;
             p_program->array[operand3] = result;
             operationAddress += 4;
             continue;
         }
 
-        if (operation == 3)
-        {
+        if (operation == 3) {
             // execute
             int operand1 = p_program->array[operationAddress + 1];
             int result;
@@ -123,61 +144,139 @@ void decodeAndExecute(IntArray *p_program)
             continue;
         }
 
-        if (operation == 4)
-        {
+        if (operation == 4) {
             // execute
-            int result = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
+            int result;
+            
+            if (operand1_mode == 0)
+                result = p_program->array[p_program->array[operationAddress + 1]];
+            else if (operand1_mode == 1)
+                result = p_program->array[operationAddress + 1];
+            else if (operand1_mode == 2)
+                result = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+
             printf("%d\r\n", result);
             operationAddress += 2;
             continue;
         }
 
-        if (operation == 5)
-        {
+        if (operation == 5) {
             // execute
-            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
+            int operand1, operand2;
+            
+            if (operand1_mode == 0)
+                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+            else if (operand1_mode == 1)
+                operand1 = p_program->array[operationAddress + 1];
+            else if (operand1_mode == 2)
+                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+
+            if (operand2_mode == 0)
+                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+            else if (operand2_mode == 1)
+                operand2 = p_program->array[operationAddress + 2];
+            else if (operand2_mode == 2)
+                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+
             if (operand1 != 0)
                 operationAddress = operand2;
             else
                 operationAddress += 3;
+
             continue;
         }
 
-        if (operation == 6)
-        {
-            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
+        if (operation == 6) {
+            int operand1, operand2;
+            
+            if (operand1_mode == 0)
+                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+            else if (operand1_mode == 1)
+                operand1 = p_program->array[operationAddress + 1];
+            else if (operand1_mode == 2)
+                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+
+            if (operand2_mode == 0)
+                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+            else if (operand2_mode == 1)
+                operand2 = p_program->array[operationAddress + 2];
+            else if (operand2_mode == 2)
+                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+
             if (operand1 == 0)
                 operationAddress = operand2;
             else 
                 operationAddress += 3;
+
             continue;
         }
 
-        if (operation == 7)
-        {
-            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
-            int operand3 = p_program->array[operationAddress + 3];
+        if (operation == 7) {
+            int operand1, operand2, operand3;
+            
+            if (operand1_mode == 0)
+                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+            else if (operand1_mode == 1)
+                operand1 = p_program->array[operationAddress + 1];
+            else if (operand1_mode == 2)
+                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+
+            if (operand2_mode == 0)
+                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+            else if (operand2_mode == 1)
+                operand2 = p_program->array[operationAddress + 2];
+            else if (operand2_mode == 2)
+                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+
+            operand3 = p_program->array[operationAddress + 3];
             if (operand1 < operand2)
                 p_program->array[operand3] = 1;
             else
                 p_program->array[operand3] = 0;
+
             operationAddress += 4;
             continue;
         }
 
-        if (operation == 8)
-        {
-            int operand1 = first_operand_mode == 1 ? p_program->array[operationAddress + 1] : p_program->array[p_program->array[operationAddress + 1]];
-            int operand2 = second_operand_mode == 1 ? p_program->array[operationAddress + 2] : p_program->array[p_program->array[operationAddress + 2]];
-            int operand3 = p_program->array[operationAddress + 3];
+        if (operation == 8) {
+            int operand1, operand2, operand3;
+            
+            if (operand1_mode == 0)
+                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+            else if (operand1_mode == 1)
+                operand1 = p_program->array[operationAddress + 1];
+            else if (operand1_mode == 2)
+                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+
+            if (operand2_mode == 0)
+                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+            else if (operand2_mode == 1)
+                operand2 = p_program->array[operationAddress + 2];
+            else if (operand2_mode == 2)
+                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+            
+            operand3 = p_program->array[operationAddress + 3];
             if (operand1 == operand2)
                 p_program->array[operand3] = 1;
             else
                 p_program->array[operand3] = 0;
+            
             operationAddress += 4;
+            continue;
+        }
+
+        if (operation == 9) {
+            int operand1;
+            
+            if (operand1_mode == 0)
+                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+            else if (operand1_mode == 1)
+                operand1 = p_program->array[operationAddress + 1];
+            else if (operand1_mode == 2)
+                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+
+            relative_base += operand1;
+            operationAddress += 2;
             continue;
         }
     }
