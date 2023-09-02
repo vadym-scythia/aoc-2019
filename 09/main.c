@@ -2,15 +2,16 @@
 #include "../libs/util.h"
 
 void fetch(char *p_program_string, IntArray **p_program);
-void decode_execute(IntArray *p_program); 
+void decode_execute(int_code_comp *p_program); 
 
 int main(int argc, char **argv) {
     char *p_program_string = readFileOneLine(argv[1]);
-    IntArray *p_program;
+    int_code_comp *p_icc;
+    init_icc(p_icc, 1, 1);
 
-    fetch(p_program_string, &p_program);
-    decode_execute(p_program);
-    freeIntArray(p_program);
+    fetch(p_program_string, &p_icc->program);
+    decode_execute(p_icc);
+    free(p_icc);
 
     return 0;
 }
@@ -62,14 +63,15 @@ void fetch(char *p_program_string, IntArray **pp_program)
         }
     }
 
-    initIntArray(*pp_program, temp_program.used);
-    for (int i = 0; i < (*pp_program)->size; i++)
+    for (int i = 0; i < temp_program.used; i++)
         insertIntArray(*pp_program, temp_program.array[i]);
     freeIntArray(&temp_program);
 }
 
-void decode_execute(IntArray *p_program) 
+void decode_execute(int_code_comp *p_icc) 
 {
+    IntArray *p_program = p_icc->program;
+    IntArray *p_memory = p_icc->memory; 
     int operationAddress = 0;
     int relative_base = 0;
     while (operationAddress <= p_program->size)

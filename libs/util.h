@@ -23,3 +23,12 @@ typedef struct
 void initIntArray(IntArray *ptr, size_t initSize);
 void insertIntArray(IntArray *ptr, int element);
 void freeIntArray(IntArray *ptr);
+
+typedef struct
+{
+    IntArray *program;
+    IntArray *memory;
+} int_code_comp;
+
+void init_icc(int_code_comp *p, size_t program_size, size_t memory_size);
+int count_address(int_code_comp *p, size_t address);
