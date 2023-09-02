@@ -31,4 +31,4 @@ typedef struct
 } int_code_comp;
 
 void init_icc(int_code_comp *p, size_t program_size, size_t memory_size);
-int count_address(int_code_comp *p, size_t address);
+int is_program_addr(int_code_comp *p, size_t address);

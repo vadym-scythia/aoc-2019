@@ -110,9 +110,9 @@ void init_icc(int_code_comp *p_icc, size_t program_size, size_t memory_size) {
     initIntArray(p_icc->memory, memory_size);
 }
 
-int count_address(int_code_comp *p_icc, size_t address) {
+int is_program_addr(int_code_comp *p_icc, size_t address) {
     if (address > p_icc->program->used)
-        return address - p_icc->program->used;
+        return 0;
     
-    return address;
+    return 1;
 }

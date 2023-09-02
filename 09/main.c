@@ -1,13 +1,17 @@
 #include "stdio.h"
 #include "../libs/util.h"
 
+// todo:
+// debug with using additional memory
+// add big numbers support
+
 void fetch(char *p_program_string, IntArray **p_program);
 void decode_execute(int_code_comp *p_program); 
 
 int main(int argc, char **argv) {
     char *p_program_string = readFileOneLine(argv[1]);
     int_code_comp *p_icc;
-    init_icc(p_icc, 1, 1);
+    init_icc(p_icc, 1, 1000);
 
     fetch(p_program_string, &p_icc->program);
     decode_execute(p_icc);
@@ -90,19 +94,39 @@ void decode_execute(int_code_comp *p_icc)
             // todo: extract operand getting to separate function
             int operand1, operand2, operand3, result;
             
+            IntArray *p_memory_type;
+            int address;
+            if (is_program_addr(p_icc, operationAddress + 1)) {
+                p_memory_type = p_program;
+                address = operationAddress + 1;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 1) - p_program->used;
+            }
+
             if (operand1_mode == 0)
-                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand1_mode == 1)
-                operand1 = p_program->array[operationAddress + 1];
+                operand1 = p_memory_type->array[address];
             else if (operand1_mode == 2)
-                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[relative_base + p_memory_type->array[address]];
+
+            if (is_program_addr(p_icc, operationAddress + 2)) {
+                p_memory_type = p_program;
+                address = operationAddress + 2;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 2) - p_program->used;
+            }
 
             if (operand2_mode == 0)
-                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand2_mode == 1)
-                operand2 = p_program->array[operationAddress + 2];
+                operand2 = p_memory_type->array[address];
             else if (operand2_mode == 2)
-                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[relative_base + p_memory_type->array[address]];
             
             operand3 = p_program->array[operationAddress + 3];
             result = operand1 + operand2;
@@ -115,19 +139,39 @@ void decode_execute(int_code_comp *p_icc)
             // execute
             int operand1, operand2, operand3, result;
             
+            IntArray *p_memory_type;
+            int address;
+            if (is_program_addr(p_icc, operationAddress + 1)) {
+                p_memory_type = p_program;
+                address = operationAddress + 1;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 1) - p_program->used;
+            }
+
             if (operand1_mode == 0)
-                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand1_mode == 1)
-                operand1 = p_program->array[operationAddress + 1];
+                operand1 = p_memory_type->array[address];
             else if (operand1_mode == 2)
-                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[relative_base + p_memory_type->array[address]];
+
+            if (is_program_addr(p_icc, operationAddress + 2)) {
+                p_memory_type = p_program;
+                address = operationAddress + 2;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 2) - p_program->used;
+            }
 
             if (operand2_mode == 0)
-                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand2_mode == 1)
-                operand2 = p_program->array[operationAddress + 2];
+                operand2 = p_memory_type->array[address];
             else if (operand2_mode == 2)
-                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[relative_base + p_memory_type->array[address]];
 
             operand3 = p_program->array[operationAddress + 3];
             result = operand1 * operand2;
@@ -138,7 +182,18 @@ void decode_execute(int_code_comp *p_icc)
 
         if (operation == 3) {
             // execute
-            int operand1 = p_program->array[operationAddress + 1];
+            IntArray *p_memory_type;
+            int address;
+            if (is_program_addr(p_icc, operationAddress + 1)) {
+                p_memory_type = p_program;
+                address = operationAddress + 1;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 1) - p_program->used;
+            }
+
+            int operand1 = p_memory_type->array[address];
             int result;
             scanf("%d", &result);
             p_program->array[operand1] = result;
@@ -150,12 +205,23 @@ void decode_execute(int_code_comp *p_icc)
             // execute
             int result;
             
+            IntArray *p_memory_type;
+            int address;
+            if (is_program_addr(p_icc, operationAddress + 1)) {
+                p_memory_type = p_program;
+                address = operationAddress + 1;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 1) - p_program->used;
+            }
+
             if (operand1_mode == 0)
-                result = p_program->array[p_program->array[operationAddress + 1]];
+                result = p_memory_type->array[p_memory_type->array[address]];
             else if (operand1_mode == 1)
-                result = p_program->array[operationAddress + 1];
+                result = p_memory_type->array[address];
             else if (operand1_mode == 2)
-                result = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+                result = p_memory_type->array[relative_base + p_memory_type->array[address]];
 
             printf("%d\r\n", result);
             operationAddress += 2;
@@ -166,19 +232,39 @@ void decode_execute(int_code_comp *p_icc)
             // execute
             int operand1, operand2;
             
+            IntArray *p_memory_type;
+            int address;
+            if (is_program_addr(p_icc, operationAddress + 1)) {
+                p_memory_type = p_program;
+                address = operationAddress + 1;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 1) - p_program->used;
+            }
+
             if (operand1_mode == 0)
-                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand1_mode == 1)
-                operand1 = p_program->array[operationAddress + 1];
+                operand1 = p_memory_type->array[address];
             else if (operand1_mode == 2)
-                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[relative_base + p_memory_type->array[address]];
+
+            if (is_program_addr(p_icc, operationAddress + 2)) {
+                p_memory_type = p_program;
+                address = operationAddress + 2;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 2) - p_program->used;
+            }
 
             if (operand2_mode == 0)
-                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand2_mode == 1)
-                operand2 = p_program->array[operationAddress + 2];
+                operand2 = p_memory_type->array[address];
             else if (operand2_mode == 2)
-                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[relative_base + p_memory_type->array[address]];
 
             if (operand1 != 0)
                 operationAddress = operand2;
@@ -191,19 +277,39 @@ void decode_execute(int_code_comp *p_icc)
         if (operation == 6) {
             int operand1, operand2;
             
+            IntArray *p_memory_type;
+            int address;
+            if (is_program_addr(p_icc, operationAddress + 1)) {
+                p_memory_type = p_program;
+                address = operationAddress + 1;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 1) - p_program->used;
+            }
+
             if (operand1_mode == 0)
-                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand1_mode == 1)
-                operand1 = p_program->array[operationAddress + 1];
+                operand1 = p_memory_type->array[address];
             else if (operand1_mode == 2)
-                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[relative_base + p_memory_type->array[address]];
+
+            if (is_program_addr(p_icc, operationAddress + 2)) {
+                p_memory_type = p_program;
+                address = operationAddress + 2;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 2) - p_program->used;
+            }
 
             if (operand2_mode == 0)
-                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand2_mode == 1)
-                operand2 = p_program->array[operationAddress + 2];
+                operand2 = p_memory_type->array[address];
             else if (operand2_mode == 2)
-                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[relative_base + p_memory_type->array[address]];
 
             if (operand1 == 0)
                 operationAddress = operand2;
@@ -216,19 +322,39 @@ void decode_execute(int_code_comp *p_icc)
         if (operation == 7) {
             int operand1, operand2, operand3;
             
+            IntArray *p_memory_type;
+            int address;
+            if (is_program_addr(p_icc, operationAddress + 1)) {
+                p_memory_type = p_program;
+                address = operationAddress + 1;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 1) - p_program->used;
+            }
+
             if (operand1_mode == 0)
-                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand1_mode == 1)
-                operand1 = p_program->array[operationAddress + 1];
+                operand1 = p_memory_type->array[address];
             else if (operand1_mode == 2)
-                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[relative_base + p_memory_type->array[address]];
+
+            if (is_program_addr(p_icc, operationAddress + 2)) {
+                p_memory_type = p_program;
+                address = operationAddress + 2;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 2) - p_program->used;
+            }
 
             if (operand2_mode == 0)
-                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand2_mode == 1)
-                operand2 = p_program->array[operationAddress + 2];
+                operand2 = p_memory_type->array[address];
             else if (operand2_mode == 2)
-                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[relative_base + p_memory_type->array[address]];
 
             operand3 = p_program->array[operationAddress + 3];
             if (operand1 < operand2)
@@ -243,19 +369,39 @@ void decode_execute(int_code_comp *p_icc)
         if (operation == 8) {
             int operand1, operand2, operand3;
             
+            IntArray *p_memory_type;
+            int address;
+            if (is_program_addr(p_icc, operationAddress + 1)) {
+                p_memory_type = p_program;
+                address = operationAddress + 1;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 1) - p_program->used;
+            }
+
             if (operand1_mode == 0)
-                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand1_mode == 1)
-                operand1 = p_program->array[operationAddress + 1];
+                operand1 = p_memory_type->array[address];
             else if (operand1_mode == 2)
-                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[relative_base + p_memory_type->array[address]];
+
+            if (is_program_addr(p_icc, operationAddress + 2)) {
+                p_memory_type = p_program;
+                address = operationAddress + 2;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 2) - p_program->used;
+            }
 
             if (operand2_mode == 0)
-                operand2 = p_program->array[p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand2_mode == 1)
-                operand2 = p_program->array[operationAddress + 2];
+                operand2 = p_memory_type->array[address];
             else if (operand2_mode == 2)
-                operand2 = p_program->array[relative_base + p_program->array[operationAddress + 2]];
+                operand2 = p_memory_type->array[relative_base + p_memory_type->array[address]];
             
             operand3 = p_program->array[operationAddress + 3];
             if (operand1 == operand2)
@@ -270,12 +416,23 @@ void decode_execute(int_code_comp *p_icc)
         if (operation == 9) {
             int operand1;
             
+            IntArray *p_memory_type;
+            int address;
+            if (is_program_addr(p_icc, operationAddress + 1)) {
+                p_memory_type = p_program;
+                address = operationAddress + 1;
+            }
+            else {
+                p_memory_type = p_memory;
+                address = (operationAddress + 1) - p_program->used;
+            }
+
             if (operand1_mode == 0)
-                operand1 = p_program->array[p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[p_memory_type->array[address]];
             else if (operand1_mode == 1)
-                operand1 = p_program->array[operationAddress + 1];
+                operand1 = p_memory_type->array[address];
             else if (operand1_mode == 2)
-                operand1 = p_program->array[relative_base + p_program->array[operationAddress + 1]];
+                operand1 = p_memory_type->array[relative_base + p_memory_type->array[address]];
 
             relative_base += operand1;
             operationAddress += 2;
